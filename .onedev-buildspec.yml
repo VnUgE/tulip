@@ -1,0 +1,46 @@
+version: 33
+jobs:
+- name: GitHub Push
+  steps:
+  - !PushRepository
+    name: Github push sync
+    remoteUrl: https://github.com/VnUgE/tulip.git
+    userName: VnUgE
+    passwordSecret: github-access-token
+    force: true
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !PushRepository
+    name: Codeberg push sync
+    remoteUrl: https://codeberg.com/VnUgE/tulip.git
+    userName: VnUgE
+    passwordSecret: codeberg-access-token
+    force: true
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  triggers:
+  - !TagCreateTrigger
+    projects: tulip
+  - !BranchUpdateTrigger
+    projects: tulip
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  timeout: 3600
+- name: GitHub Pull
+  steps:
+  - !PullRepository
+    name: GitHub sync pull
+    remoteUrl: https://github.com/VnUgE/tulip.git
+    userName: VnUgE
+    passwordSecret: github-access-token
+    refs: refs/heads/* refs/tags/*
+    withLfs: false
+    force: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  triggers:
+  - !ScheduleTrigger
+    cronExpression: 0 15 10 ? * *
+    projects: tulip
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  timeout: 3600
